@@ -34,7 +34,7 @@ logger = Logging.setup_logging()
 rl=1@u_kOhm
 circuit = Circuit("Norton's Theorem")
 circuit.R('1', 'input', 1, 1@u_kOhm)
-circuit.R('3', 1, 'load', 1.5@u_kOhm)
+circuit.R('3', 1, 'load', (r3:=1.5@u_kOhm))
 circuit.R('2', 1, circuit.gnd, 2@u_kOhm)
 circuit.I('', circuit.gnd, 'input', 1@u_A)
 circuit.R('L', 'load', circuit.gnd, rl)
@@ -45,22 +45,19 @@ analysis = simulator.operating_point()
 vl=u_V(float(analysis.load))
 
 # %% rn
-circuit = Circuit("Resistor network")
-circuit.R('1', 'input', 1, 1@u_kOhm)
-circuit.R('3', 1, 'load', 1.5@u_kOhm)
-circuit.R('2', 1, circuit.gnd, 2@u_kOhm)
-circuit.V('', 'load', circuit.gnd, (v:=1@u_V))
+circuit.RL.detach()
+circuit.R3.detach()
+circuit.R('3', 1, circuit.gnd, r3)
 
 # %% simulate
 simulator = circuit.simulator()
 analysis = simulator.operating_point()
-i=u_A(float(-analysis.v))
-rn=v/i
+vn=u_V(float(analysis['1']))
 
 # %% display
 il=vl/rl
-req=(rn*rl)/(rn+rl)
-ino=vl/req
+ino=vn/r3
+rn=rl*(il/(ino-il))
 print('Norton equivalent current is: {:.2f} A'.format(float(ino)))
 print('Current flowing through load is: {:.2f} A'.format(float(il)))
 print('Norton equivalent resistance is: {:.2f} Ohm'.format(float(rn)))
